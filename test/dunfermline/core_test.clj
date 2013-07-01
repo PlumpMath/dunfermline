@@ -2,6 +2,13 @@
   (:require [clojure.test :refer :all]
             [dunfermline.core :refer :all]))
 
-(deftest a-test
-  (testing "FIXME, I fail."
-    (is (= 0 1))))
+(deftest basic-parser-test
+  (testing "Basic parsers"
+    (do
+      (is (= ((word-parser "foo") "foo bar") ["foo" " bar"]))
+      (is (= ((word-parser "foo") "foolbar") [nil "foolbar"]))
+      (is (= ((keyword-parser :foo) "foo bar") [:foo " bar"]))
+      (is (= ((whitespace-parser) "
+                                  bar") [:whitespace "bar"]))
+      (is (= ((identifier-parser) "foo-bar0099***") ["foo-bar0099" "***"]))
+      (is (= ((identifier-parser) "-foo-bar0099") [nil "-foo-bar0099"])))))

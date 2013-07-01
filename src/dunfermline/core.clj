@@ -42,7 +42,7 @@
 (defn whitespace-parser
   ([return-val whitespace-seq]
    (fn [input]
-     (let [c (count (take-some input))]
+     (let [c (count (take-some whitespace-seq input))]
        (if (pos? c)
          [return-val (.substring input c)]
          [nil input]))))
@@ -53,7 +53,7 @@
   ([returner initial-seq subsequent-seq]
    (fn [input]
      (if-let [the-first (some #{(.charAt input 0)} initial-seq)]
-       (let [the-rest (take-some subsequent-seq input)]
+       (let [the-rest (take-some subsequent-seq (.substring input 1))]
          [(returner (apply str (cons the-first the-rest)))
           (.substring input (inc (count the-rest)))])
        [nil input])))

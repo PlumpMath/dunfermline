@@ -71,3 +71,13 @@
    (identifier-parser returner (char-range \a \z \A \Z)))
   ([] (identifier-parser identity)))
 
+(defn integer-parser
+  []
+  (fn [input]
+    (let [digits (char-range \0 \9)
+          answer ((identifier-parser (concat [\+ \-] digits) digits) input)]
+      (if-let [value (first answer)]
+        [(. Integer (parseInt value)) (second answer)]
+        [nil input]))))
+
+;;TODO or-parse = (some #(not (nil? (apply first incoming))))

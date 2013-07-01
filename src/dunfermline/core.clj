@@ -8,8 +8,8 @@
         (vec out)
         (recur (drop 2 in) (concat (go (first in) (second in)) out))))))
 
-(def default-identifier-chars (concat '[\- \_] (char-range \a \z \A \Z \0 \9)))
-(def default-whitespace-chars
+(def default-identifier-class (concat '[\- \_] (char-range \a \z \A \Z \0 \9)))
+(def default-whitespace-class
   [\space \tab \formfeed \return \newline \backspace])
 
 (defn char-parser
@@ -28,7 +28,7 @@
          [return-val (.substring input len)]
          [nil input]))))
     ([target return-val]
-     (word-parser target return-val #(not (some #{%} default-identifier-chars))))
+     (word-parser target return-val #(not (some #{%} default-identifier-class))))
     ([target] (word-parser target target)))
 
 (defn keyword-parser
@@ -39,26 +39,34 @@
 (defn- take-some [char-class coll]
   (take-while #(some #{%} char-class) (seq coll)))
 
-(defn whitespace-parser
-  ([return-val whitespace-seq]
-   (fn [input]
-     (let [c (count (take-some whitespace-seq input))]
+(defn char-class-parser
+  [char-class]
+  (fn [input]
+     (let [c (count (take-some char-class input))]
        (if (pos? c)
-         [return-val (.substring input c)]
+         [(.substring input 0 c) (.substring input c)]
          [nil input]))))
-  ([return-val] (whitespace-parser return-val default-whitespace-chars))
+
+(defn whitespace-parser
+  ([return-val whitespace-class]
+   (fn [input]
+     (let [stripped ((char-class-parser whitespace-class) input)]
+       (if (first stripped)
+         [return-val (second stripped)]
+         [nil input]))))
+  ([return-val] (whitespace-parser return-val default-whitespace-class))
   ([] (whitespace-parser :whitespace)))
 
 (defn identifier-parser
-  ([returner initial-seq subsequent-seq]
+  ([returner initial-class subsequent-class]
    (fn [input]
-     (if-let [the-first (some #{(.charAt input 0)} initial-seq)]
-       (let [the-rest (take-some subsequent-seq (.substring input 1))]
-         [(returner (apply str (cons the-first the-rest)))
-          (.substring input (inc (count the-rest)))])
+     (if-let [the-first (some #{(.charAt input 0)} initial-class)]
+       (let [rest ((char-class-parser subsequent-class) (.substring input 1))]
+         [(returner (apply str (cons the-first (seq (first rest)))))
+          (second rest)])
        [nil input])))
-  ([returner initial-seq]
-   (identifier-parser returner initial-seq default-identifier-chars))
+  ([returner initial-class]
+   (identifier-parser returner initial-class default-identifier-class))
   ([returner]
    (identifier-parser returner (char-range \a \z \A \Z)))
   ([] (identifier-parser identity)))

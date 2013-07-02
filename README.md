@@ -4,7 +4,7 @@ A simple parser combinator lib.
 
 ## Usage
 
-FIXME
+Not yet ready for use.
 
 ## License
 

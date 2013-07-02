@@ -26,4 +26,8 @@
                             (whitespace-parser)
                             (integer-parser)])]
         (is (= (ap "id 123") [[:id :whitespace 123] ""]))
-        (is (= (ap "pid 123") [nil "pid 123"]))))))
+        (is (= (ap "pid 123") [nil "pid 123"])))
+      (is (= ((optional (integer-parser)) "123") [123 ""]))
+      (is (= ((optional (integer-parser)) "fred") [:not-present "fred"]))
+      (is (= ((float-parser) "123.5foo") [123.5 "foo"]))
+      (is (= ((float-parser) "1.34e30") [1.34E30 ""])))))

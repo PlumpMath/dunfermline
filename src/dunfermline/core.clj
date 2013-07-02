@@ -126,3 +126,27 @@
           (recur (rest ps) (conj results (first result)) (second result))
           [nil input])
         [results in]))))
+
+(defn optional
+  "Make a parser optional. Returns return-val when parse fails. return-val
+  defaults to :not-present"
+  ([parser return-val]
+  (fn [input]
+    (if-let [result (check-parse parser input)]
+      result
+      [return-val input])))
+  ([parser] (optional parser :not-present)))
+
+(defn float-parser
+  "Create parser for floating point numbers."
+  []
+  (fn [input]
+    (if-let [result
+             ((and-parser [(integer-parser) (char-parser \.) (integer-parser)
+                           (optional (and-parser [(or-parser [(char-parser \e)
+                                                              (char-parser \E)])
+                                                  (integer-parser)]) \0)])
+              input)]
+      [(->> result first flatten (apply str) Double/parseDouble)
+       (second result)]
+      [nil input])))

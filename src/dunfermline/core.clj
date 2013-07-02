@@ -77,4 +77,21 @@
         [(. Integer (parseInt value)) (second answer)]
         [nil input]))))
 
-;;TODO or-parse = (some #(not (nil? (apply first incoming))))
+(defn check-parse [parser input]
+  (let [result (parser input)]
+    (if (nil? (first result)) nil result)))
+
+(defn or-parser [parsers]
+  (fn [input]
+    (if-let [result (some #(check-parse % input) parsers)]
+      result
+      [nil input])))
+
+(defn and-parser [parsers]
+  (fn [input]
+    (loop [ps parsers results [] in input]
+      (if (seq ps)
+        (if-let [result (check-parse (first ps) in)]
+          (recur (rest ps) (conj results (first result)) (second result))
+          [nil input])
+        [results in]))))

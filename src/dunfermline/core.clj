@@ -60,22 +60,19 @@
 (defn identifier-parser
   ([returner initial-class subsequent-class]
    (fn [input]
-     (if-let [the-first (some #{(.charAt input 0)} initial-class)]
-       (let [rest ((char-class-parser subsequent-class) (.substring input 1))]
-         [(returner (apply str (cons the-first (seq (first rest)))))
-          (second rest)])
+     (if (some #{(.charAt input 0)} initial-class)
+       (let [c (inc (count (take-some subsequent-class (.substring input 1))))]
+         [(returner (.substring input 0 c)) (.substring input c)])
        [nil input])))
   ([returner initial-class]
    (identifier-parser returner initial-class default-identifier-class))
-  ([returner]
-   (identifier-parser returner (char-range \a \z \A \Z)))
+  ([returner] (identifier-parser returner (char-range \a \z \A \Z)))
   ([] (identifier-parser identity)))
 
-(defn integer-parser
-  []
+(defn integer-parser []
   (fn [input]
     (let [digits (char-range \0 \9)
-          answer ((identifier-parser (concat [\+ \-] digits) digits) input)]
+          answer ((identifier-parser identity (concat [\+ \-] digits) digits) input)]
       (if-let [value (first answer)]
         [(. Integer (parseInt value)) (second answer)]
         [nil input]))))

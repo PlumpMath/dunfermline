@@ -39,7 +39,8 @@
          [return-val (.substring input len)]
          [nil input]))))
     ([target return-val]
-     (word-parser target return-val #(not (some #{%} default-identifier-class))))
+     (word-parser target return-val
+                  #(not (some #{%} default-identifier-class))))
     ([target] (word-parser target target)))
 
 (defn keyword-parser
@@ -95,7 +96,8 @@
   []
   (fn [input]
     (let [digits (char-range \0 \9)
-          answer ((identifier-parser identity (concat [\+ \-] digits) digits) input)]
+          answer ((identifier-parser identity
+                                     (concat [\+ \-] digits) digits) input)]
       (if-let [value (first answer)]
         [(Integer/parseInt value) (second answer)]
         [nil input]))))
@@ -104,7 +106,7 @@
   "Apply parser to input, returning result if succesful, nil on failure."
   [parser input]
   (let [result (parser input)]
-    (if (nil? (first result)) nil result)))
+    (when (first result) result)))
 
 (defn or-parser
   "Create parser that tries parsers until successful."
